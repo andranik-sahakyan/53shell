@@ -89,7 +89,8 @@ int main(int argc, char *argv[]) {
 		}
 	
 		if (strcmp(args[0], "estatus") == 0) {
-			printf("%d\n", exit_status);
+			if (WIFEXITED(exit_status))
+				printf("%d\n", WEXITSTATUS(exit_status));
 			continue;
 		}
 	
@@ -104,7 +105,7 @@ int main(int argc, char *argv[]) {
 			}
 		    exit(EXIT_SUCCESS);
 		}
-		 else {
+		else {
 			if (strcmp(args[numTokens - 1], "&") == 0) printf("BG PROCESS STARTED\n");
 			wait_result = waitpid(pid, &exit_status, 0);
 			if (wait_result == -1) {
@@ -112,7 +113,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 		}
-
+	
 		// Free the buffer allocated from getline
 		free(buffer);
 	}
