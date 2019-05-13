@@ -11,9 +11,10 @@
 #include <ctype.h>
 #include <sys/wait.h>
 
+
 int main(int argc, char *argv[]) {
-	int i;
-	char *args[MAX_TOKENS + 1];
+	int i, is_bg;
+	char* args[MAX_TOKENS + 1];
 	int exec_result;
 	int exit_status;
 	pid_t pid;
@@ -23,15 +24,23 @@ int main(int argc, char *argv[]) {
     //Initialize the linked list
     bg_list.head = NULL;
     bg_list.length = 0;
-    bg_list.comparator = NULL;  // Don't forget to initialize this to your comparator!!!
+    bg_list.comparator = (int (*)(void*, void*)) &timeComparator;
 
-	// Setup segmentation fault handler
-	if(signal(SIGSEGV, sigsegv_handler) == SIG_ERR) {
+	// SIGSEGV Handler
+	if (signal(SIGSEGV, sigsegv_handler) == SIG_ERR) {
 		perror("Failed to set signal handler");
 		exit(-1);
 	}
 
+	// SIGCHLD Handler
+	int sigchld = 0;
+	void sigchld_handler(int sig) { sigchld = 1; }
+	signal(SIGCHLD, sigchld_handler);
+	
+
 	while (1) {
+		is_bg = 0;	
+	
 		// DO NOT MODIFY buffer
 		// The buffer is dynamically allocated, we need to free it at the end of the loop
 		char* const buffer = NULL;
@@ -94,8 +103,12 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 	
-		// EXTERNAL COMMANDS		
 		pid = fork();
+
+		if (strcmp(args[numTokens - 1], "&") == 0) {	
+			args[numTokens - 1] = NULL;
+			is_bg = 1;
+		}
 
 		if (pid == 0) {
 			exec_result = execvp(args[0], &args[0]);
@@ -104,18 +117,35 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 		    exit(EXIT_SUCCESS);
-		}
-		else {
-			if (strcmp(args[numTokens - 1], "&") == 0) printf("BG PROCESS STARTED\n");
-			wait_result = waitpid(pid, &exit_status, 0);
-			if (wait_result == -1) {
-				printf(WAIT_ERR);
-				exit(EXIT_FAILURE);
+		} else {
+			if (sigchld) {
+				while (wait_result = waitpid(-1, &exit_status, WNOHANG)) { 
+					ProcessEntry_t* child = findByPid(&bg_list, wait_result);
+					printf(BG_TERM, child->pid, child->cmd);
+					removeByPid(&bg_list, wait_result);
+				}
+				sigchld = 0;
+			}
+
+			if (is_bg) {
+				ProcessEntry_t* bg_process = malloc(sizeof(ProcessEntry_t));
+				bg_process->cmd = malloc(sizeof(buffer));
+				strcpy(bg_process->cmd, buffer);
+				bg_process->pid = pid;
+				bg_process->seconds = time(NULL);
+				insertInOrder(&bg_list, bg_process);
+			} else {
+				wait_result = waitpid(pid, &exit_status, 0);
+				if (wait_result == -1) {
+					printf(WAIT_ERR);
+					exit(EXIT_FAILURE);
+				}
 			}
 		}
 	
 		// Free the buffer allocated from getline
 		free(buffer);
 	}
+
 	return 0;
 }

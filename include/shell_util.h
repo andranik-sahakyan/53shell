@@ -16,9 +16,8 @@
 #define PID_ERR "PROCESS ERROR: Process pid does not exist.\n"
 #define PIPE_ERR "PIPE ERROR: Invalid use of pipe operators.\n"
 
-typedef struct ProcessEntry
-{
-    char *cmd;  // full command entered, including the &
+typedef struct ProcessEntry {
+    char* cmd;  // full command entered, including the &
     pid_t pid;  // pid of the (first) background process
     time_t seconds;   // time at which the command recieved by the shell
                       // used to sort linkedList 
@@ -37,7 +36,7 @@ int removeByPid(List_t* list, pid_t p);
  * Prints out a single ProcessEntry struct to STDOUT
  * Async_singal_safe implementation
  */
-void printBGPEntry(ProcessEntry_t * p); 
+void printBGPEntry(ProcessEntry_t* p); 
 
 /*
  * Prints message to STDERR prior to termination. 
@@ -52,7 +51,7 @@ void sigsegv_handler();
  *
  * Returns number of tokens placed in argv (aka argc).
  */
-size_t tokenizer(char *buffer, char *argv[]);
+size_t tokenizer(char* buffer, char* argv[]);
 
 /*
  * Prints out the "<53shell>$" prompt to STDOUT

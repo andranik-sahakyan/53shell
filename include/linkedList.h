@@ -10,7 +10,7 @@
 #define STR_MODE 1
 
 /*
- * Structre for each node of the linkedList
+ * Structure for each node of the linkedList
  *
  * value - a pointer to the data of the node. 
  * next - a pointer to the next node in the list. 
