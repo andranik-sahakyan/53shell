@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <sys/wait.h>
 
+int sigchld = 0;
 
 int main(int argc, char *argv[]) {
 	int i, is_bg;
@@ -33,7 +34,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	// SIGCHLD Handler
-	int sigchld = 0;
 	void sigchld_handler(int sig) { sigchld = 1; }
 	signal(SIGCHLD, sigchld_handler);
 	
@@ -105,6 +105,7 @@ int main(int argc, char *argv[]) {
 				printf("%d\n", WEXITSTATUS(exit_status));
 			continue;
 		}
+
 	
 		pid = fork();
 
@@ -114,6 +115,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (pid == 0) {
+			if (configureIO(args, numTokens) < 0) continue;				
 			exec_result = execvp(args[0], &args[0]);
 			if (exec_result == -1) {
 				printf(EXEC_ERR, args[0]);
@@ -145,7 +147,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-	
+		
 		// Free the buffer allocated from getline
 		free(buffer);
 		free(cmd);
