@@ -37,7 +37,6 @@ int main(int argc, char *argv[]) {
 	void sigchld_handler(int sig) { sigchld = 1; }
 	signal(SIGCHLD, sigchld_handler);
 	
-
 	while (1) {
 		is_bg = 0;	
 	
@@ -67,7 +66,11 @@ int main(int argc, char *argv[]) {
 			free(buffer);
 			continue;
 		}
-		
+	
+		// Save original command	
+		char* cmd = malloc(buf_size);
+		strcpy(cmd, buffer);
+
 		// Parsing input string into a sequence of tokens
 		size_t numTokens;
 		*args = NULL;
@@ -129,8 +132,8 @@ int main(int argc, char *argv[]) {
 
 			if (is_bg) {
 				ProcessEntry_t* bg_process = malloc(sizeof(ProcessEntry_t));
-				bg_process->cmd = malloc(sizeof(buffer));
-				strcpy(bg_process->cmd, buffer);
+				bg_process->cmd = malloc(buf_size);
+				strcpy(bg_process->cmd, cmd);
 				bg_process->pid = pid;
 				bg_process->seconds = time(NULL);
 				insertInOrder(&bg_list, bg_process);
@@ -145,6 +148,7 @@ int main(int argc, char *argv[]) {
 	
 		// Free the buffer allocated from getline
 		free(buffer);
+		free(cmd);
 	}
 
 	return 0;
