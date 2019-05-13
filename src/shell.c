@@ -106,16 +106,15 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-	
-		pid = fork();
-
 		if (strcmp(args[numTokens - 1], "&") == 0) {	
 			args[numTokens - 1] = NULL;
 			is_bg = 1;
 		}
 
+		pid = fork();
+		
 		if (pid == 0) {
-			if (configureIO(args, numTokens) < 0) continue;				
+			configureIO(args, numTokens);				
 			exec_result = execvp(args[0], &args[0]);
 			if (exec_result == -1) {
 				printf(EXEC_ERR, args[0]);
