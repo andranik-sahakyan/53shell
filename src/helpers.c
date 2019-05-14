@@ -28,7 +28,7 @@ void killBgProcs(List_t* bg_list) {
 	node_t* cur_node = bg_list->head;	
 	while (cur_node) {
 		ProcessEntry_t* cur_proc = cur_node->value;
-		kill(cur_proc->pid, 9);
+		kill(cur_proc->pid, 15);
 		cur_node = cur_node->next;
 	}
 }
