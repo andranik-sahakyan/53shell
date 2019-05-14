@@ -25,10 +25,13 @@ void printBgList(List_t* bg_list) {
 }
 
 void killBgProcs(List_t* bg_list) {
-	node_t* cur_node = bg_list->head;	
+	node_t* cur_node = bg_list->head;
 	while (cur_node) {
 		ProcessEntry_t* cur_proc = cur_node->value;
 		kill(cur_proc->pid, 15);
+		waitpid(cur_proc->pid, NULL, WNOHANG);
+		printf(BG_TERM, cur_proc->pid, cur_proc->cmd);
+		removeByPid(bg_list, cur_proc->pid);
 		cur_node = cur_node->next;
 	}
 }
