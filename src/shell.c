@@ -36,10 +36,14 @@ int main(int argc, char *argv[]) {
 	// SIGCHLD Handler
 	void sigchld_handler(int sig) { sigchld = 1; }
 	signal(SIGCHLD, sigchld_handler);
+
+	// SIGUSR1 Handler
+	void sigusr1_handler(int sig) { printBgList(&bg_list); }	
+	signal(SIGUSR1, sigusr1_handler);
 	
 	while (1) {
 		is_bg = 0;	
-	
+ 	
 		// DO NOT MODIFY buffer
 		// The buffer is dynamically allocated, we need to free it at the end of the loop
 		char* const buffer = NULL;
@@ -78,7 +82,9 @@ int main(int argc, char *argv[]) {
 
 		// BUILT-IN COMMANDS
 		if (strcmp(args[0], "exit") == 0) {
+			killBgProcs(&bg_list);		
 			free(buffer);
+			free(cmd);
 			return 0;
 		}
 
@@ -147,7 +153,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		
-		// Free the buffer allocated from getline
+		// Free resources
 		free(buffer);
 		free(cmd);
 	}

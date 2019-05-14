@@ -15,9 +15,27 @@ ProcessEntry_t* findByPid(List_t* bg_list, pid_t pid) {
 	return NULL;
 }
 
+void printBgList(List_t* bg_list) {
+	node_t* cur_node = bg_list->head;	
+	while (cur_node) {
+		ProcessEntry_t* cur_proc = cur_node->value;
+		printBGPEntry(cur_proc);
+		cur_node = cur_node->next;
+	}
+}
+
+void killBgProcs(List_t* bg_list) {
+	node_t* cur_node = bg_list->head;	
+	while (cur_node) {
+		ProcessEntry_t* cur_proc = cur_node->value;
+		kill(cur_proc->pid, 9);
+		cur_node = cur_node->next;
+	}
+}
+
 int configureIO(char* args[], size_t numTokens) {
-	int i;
-	for (i = 0; i < numTokens && args[i]; ++i) {
+	int i = 0, j = 0;
+	for (i; i < numTokens && args[i]; ++i) {
 		if (strcmp(args[i], ">") == 0) {
 			args[i] = NULL;
 			if (i + 1 == numTokens) { fprintf(stderr, RD_ERR); return -1; }		

@@ -33,7 +33,7 @@ ProcessEntry_t;
 int removeByPid(List_t* list, pid_t p);
 
 /* 
- * Prints out a single ProcessEntry struct to STDOUT
+ * Prints out a single ProcessEntry struct to STDERR
  * Async_singal_safe implementation
  */
 void printBGPEntry(ProcessEntry_t* p); 
