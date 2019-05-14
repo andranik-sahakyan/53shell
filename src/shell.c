@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 		pid = fork();
 		
 		if (pid == 0) {
-			configureIO(args, numTokens);				
+			if (configureIO(args, numTokens) < 0) continue;				
 			exec_result = execvp(args[0], &args[0]);
 			if (exec_result == -1) {
 				printf(EXEC_ERR, args[0]);

@@ -20,28 +20,28 @@ int configureIO(char* args[], size_t numTokens) {
 	for (i = 0; i < numTokens && args[i]; ++i) {
 		if (strcmp(args[i], ">") == 0) {
 			args[i] = NULL;
+			if (i + 1 == numTokens) { fprintf(stderr, RD_ERR); return -1; }		
 			int fd = open(args[i + 1], O_WRONLY | O_CREAT, 0666);
-			if (fd < 0) {
-				fprintf(stderr, RD_ERR);
-				return -1;
-			}	
+			if (fd < 0) { fprintf(stderr, RD_ERR); return -1; }	
 			dup2(fd, 1);
 		} else if (strcmp(args[i], ">>") == 0) {
 			args[i] = NULL;
-			int fd = open(args[i + 1], O_WRONLY | O_APPEND, 0666);
-			if (fd < 0) {
-				fprintf(stderr, RD_ERR);
-				return -1;
-			}		
+			if (i + 1 == numTokens) { fprintf(stderr, RD_ERR); return -1; }		
+			int fd = open(args[i + 1], O_WRONLY | O_APPEND | O_CREAT, 0666);
+			if (fd < 0) { fprintf(stderr, RD_ERR); return -1; }		
 			dup2(fd, 1);
 		} else if (strcmp(args[i], "2>") == 0) {
 			args[i] = NULL;
+			if (i + 1 == numTokens) { fprintf(stderr, RD_ERR); return -1; }		
 			int fd = open(args[i + 1], O_WRONLY | O_CREAT, 0666);
-			if (fd < 0) {
-				fprintf(stderr, RD_ERR);
-				return -1;
-			}		
+			if (fd < 0) { fprintf(stderr, RD_ERR); return -1; }		
 			dup2(fd, 2);
+		} else if (strcmp(args[i], "<") == 0) {
+			args[i] = NULL;
+			if (i + 1 == numTokens) { fprintf(stderr, RD_ERR); return -1; }		
+			int fd = open(args[i + 1], O_RDONLY);
+			if (fd < 0) { fprintf(stderr, RD_ERR); return -1; }		
+			dup2(fd, 0);
 		}
 	}
 }
