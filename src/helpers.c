@@ -36,6 +36,30 @@ void killBgProcs(List_t* bg_list) {
 	}
 }
 
+int executePipe(char* left_cmd[], char* right_cmd[]) {
+	if (left_cmd[0] == NULL || right_cmd[0] == NULL) {
+		fprintf(stderr, PIPE_ERR);
+		return -1;
+	}
+
+	int fd[2];
+	pipe(fd);
+	pid_t pid = fork();
+	
+	if (pid == 0) {
+		dup2(fd[1], 1);
+		close(fd[1]);
+		close(fd[0]);
+		execvp(left_cmd[0], left_cmd);
+	} else {
+		waitpid(pid, NULL, WNOHANG);
+		dup2(fd[0], 0);
+		close(fd[0]);
+		close(fd[1]);
+		execvp(right_cmd[0], right_cmd);
+	}
+}
+
 int configureIO(char* args[], size_t numTokens) {
 	int i = 0, j = 0;
 	for (i; i < numTokens && args[i]; ++i) {

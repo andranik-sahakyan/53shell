@@ -16,6 +16,7 @@ int sigchld = 0;
 int main(int argc, char *argv[]) {
 	int i, is_bg;
 	char* args[MAX_TOKENS + 1];
+	char* args_right[MAX_TOKENS + 1];
 	int exec_result;
 	int exit_status;
 	pid_t pid;
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
 	
 	while (1) {
 		is_bg = 0;	
- 	
+		
 		// DO NOT MODIFY buffer
 		// The buffer is dynamically allocated, we need to free it at the end of the loop
 		char* const buffer = NULL;
@@ -76,6 +77,16 @@ int main(int argc, char *argv[]) {
 		strcpy(cmd, buffer);
 
 		// Parsing input string into a sequence of tokens
+		char* right_cmd = strchr(buffer, '|');		
+		size_t numTokens_right; 
+
+		if (right_cmd) {
+			*right_cmd = '\0';
+			right_cmd = strdup(right_cmd + 2);
+			*args_right = NULL;
+			numTokens_right = tokenizer(right_cmd, args_right);
+		}
+	
 		size_t numTokens;
 		*args = NULL;
 		numTokens = tokenizer(buffer, args);
@@ -117,10 +128,23 @@ int main(int argc, char *argv[]) {
 			is_bg = 1;
 		}
 
+		if (right_cmd && strcmp(args_right[numTokens_right - 1], "&") == 0) {
+			args_right[numTokens_right - 1] = NULL;
+			is_bg = 1;
+		}
+
+
 		pid = fork();
 		
 		if (pid == 0) {
-			if (configureIO(args, numTokens) < 0) continue;				
+			if (right_cmd) {
+				executePipe(args, args_right);
+				free(buffer);
+				free(cmd);
+				continue;
+			}	
+			
+			if (configureIO(args, numTokens) < 0) continue;							
 			exec_result = execvp(args[0], &args[0]);
 			if (exec_result == -1) {
 				printf(EXEC_ERR, args[0]);
