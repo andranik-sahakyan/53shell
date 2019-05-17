@@ -37,11 +37,6 @@ void killBgProcs(List_t* bg_list) {
 }
 
 int executePipe(char* left_cmd[], char* right_cmd[]) {
-	if (left_cmd[0] == NULL || right_cmd[0] == NULL) {
-		fprintf(stderr, PIPE_ERR);
-		return -1;
-	}
-
 	int fd[2];
 	pipe(fd);
 	pid_t pid = fork();
@@ -58,6 +53,8 @@ int executePipe(char* left_cmd[], char* right_cmd[]) {
 		close(fd[1]);
 		execvp(right_cmd[0], right_cmd);
 	}
+	
+	return 0;
 }
 
 int configureIO(char* args[], size_t numTokens) {

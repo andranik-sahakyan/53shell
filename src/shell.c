@@ -78,13 +78,27 @@ int main(int argc, char *argv[]) {
 
 		// Parsing input string into a sequence of tokens
 		char* right_cmd = strchr(buffer, '|');		
-		size_t numTokens_right; 
+		size_t numTokens_right = 0; 
 
 		if (right_cmd) {
+			if (buffer == right_cmd || strlen(right_cmd) < 2) {
+				fprintf(stderr, PIPE_ERR);
+				free(buffer);
+				free(cmd);
+				continue;
+			}
+
 			*right_cmd = '\0';
 			right_cmd = strdup(right_cmd + 2);
 			*args_right = NULL;
 			numTokens_right = tokenizer(right_cmd, args_right);
+		
+			if (!numTokens_right) {
+				fprintf(stderr, PIPE_ERR);
+				free(cmd);
+				free(buffer);
+				continue;
+			}
 		}
 	
 		size_t numTokens;
@@ -114,12 +128,41 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "%s", DIR_ERR);
 
 			free(path);
+			free(buffer);
+			free(cmd);
 			continue;
 		}
 	
 		if (strcmp(args[0], "estatus") == 0) {
 			if (WIFEXITED(exit_status))
 				printf("%d\n", WEXITSTATUS(exit_status));
+			
+			free(buffer);
+			free(cmd);
+			continue;
+		}
+		
+		if (strcmp(args[0], "fg") == 0) {
+			if (bg_list.head) {
+				pid_t pid;
+				if (numTokens == 2) {
+					if (findByPid(&bg_list, atoi(args[1])) == NULL) { 
+						fprintf(stderr, PID_ERR);
+						free(buffer);
+						free(cmd);
+						continue;
+					}
+
+					pid = atoi(args[1]);
+				} 
+				else pid = ((ProcessEntry_t*) bg_list.head->value)->pid;
+	
+				removeByPid(&bg_list, pid);
+				waitpid(pid, NULL, 0);
+			}
+
+			free(buffer);
+			free(cmd);
 			continue;
 		}
 
@@ -128,20 +171,17 @@ int main(int argc, char *argv[]) {
 			is_bg = 1;
 		}
 
-		if (right_cmd && strcmp(args_right[numTokens_right - 1], "&") == 0) {
+		if (numTokens_right && strcmp(args_right[numTokens_right - 1], "&") == 0) {
 			args_right[numTokens_right - 1] = NULL;
 			is_bg = 1;
 		}
 
-
 		pid = fork();
 		
 		if (pid == 0) {
-			if (right_cmd) {
+			if (numTokens_right) {
 				executePipe(args, args_right);
-				free(buffer);
-				free(cmd);
-				continue;
+				break;
 			}	
 			
 			if (configureIO(args, numTokens) < 0) continue;							
